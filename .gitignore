@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+*.log
+
+# O que o MCP "enviaria" ao n8n/Meta — gerado a cada demo
+saida-simulada/*
+!saida-simulada/.gitkeep
+
+.claude/settings.local.json

@@ -1,0 +1,43 @@
+{
+  "name": "morph.odonto.consultar_convenios",
+  "nodes": [
+    {
+      "id": "t1",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"cliente_id\": \"clinica-exemplo\",\n  \"telefone\": \"5511999990000\",\n  \"args\": { \"convenio\": \"Amil Dental\" }\n}"
+      }
+    },
+    {
+      "id": "t2",
+      "name": "Buscar convênios",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.MORPH_API_URL }}/clientes/{{ $json.cliente_id }}/convenios",
+        "options": { "response": { "response": { "neverError": true } } }
+      }
+    },
+    {
+      "id": "t3",
+      "name": "Retorno",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 0],
+      "parameters": {
+        "jsCode": "const pedido = ($('Execute Workflow Trigger').item.json.args?.convenio ?? '').toLowerCase();\nconst convenios = $json.convenios ?? [];\nif (!pedido) {\n  return [{ json: { texto: `Atendemos: ${convenios.join(', ') || 'apenas particular'}.`, dados: { convenios } } }];\n}\nconst aceito = convenios.some((c) => c.toLowerCase().includes(pedido));\nconst texto = aceito ? `Sim, atendemos ${pedido}.` : `Não atendemos ${pedido}. Atendemos: ${convenios.join(', ')}.`;\nreturn [{ json: { texto, dados: { convenio: pedido, aceito, convenios } } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [[{ "node": "Buscar convênios", "type": "main", "index": 0 }]] },
+    "Buscar convênios": { "main": [[{ "node": "Retorno", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

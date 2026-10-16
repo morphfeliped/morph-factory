@@ -1,0 +1,57 @@
+{
+  "name": "morph.odonto.agendar_consulta",
+  "nodes": [
+    {
+      "id": "t1",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"cliente_id\": \"clinica-exemplo\",\n  \"telefone\": \"5511999990000\",\n  \"args\": { \"data\": \"2026-10-20\", \"hora\": \"14:30\", \"nome_paciente\": \"Maria Souza\", \"procedimento\": \"limpeza\" }\n}"
+      }
+    },
+    {
+      "id": "t2",
+      "name": "Validar args",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0],
+      "parameters": {
+        "jsCode": "const { cliente_id, telefone, args = {} } = $json;\nconst faltando = ['data', 'hora', 'nome_paciente'].filter((k) => !args[k]);\nif (faltando.length) return [{ json: { invalido: true, faltando } }];\nreturn [{ json: { cliente_id, telefone, ...args, procedimento: args.procedimento ?? 'avaliação' } }];"
+      }
+    },
+    {
+      "id": "t3",
+      "name": "Criar agendamento",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MORPH_API_URL }}/clientes/{{ $json.cliente_id }}/agenda/agendamentos",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ data: $json.data, hora: $json.hora, paciente: $json.nome_paciente, telefone: $json.telefone, procedimento: $json.procedimento }) }}",
+        "options": { "response": { "response": { "neverError": true } } }
+      }
+    },
+    {
+      "id": "t4",
+      "name": "Retorno",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 0],
+      "parameters": {
+        "jsCode": "const entrada = $('Validar args').item.json;\nif (entrada.invalido) {\n  return [{ json: { texto: `Para agendar preciso de: ${entrada.faltando.join(', ')}.`, dados: { erro: 'args_faltando', faltando: entrada.faltando } } }];\n}\nif (!$json.id) {\n  return [{ json: { texto: 'Esse horário acabou de ser ocupado. Quer ver outros?', dados: { erro: 'horario_indisponivel' } } }];\n}\nreturn [{ json: { texto: `Consulta marcada para ${entrada.data} às ${entrada.hora} (${entrada.procedimento}).`, dados: { agendamento_id: $json.id } } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [[{ "node": "Validar args", "type": "main", "index": 0 }]] },
+    "Validar args": { "main": [[{ "node": "Criar agendamento", "type": "main", "index": 0 }]] },
+    "Criar agendamento": { "main": [[{ "node": "Retorno", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

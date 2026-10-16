@@ -1,0 +1,25 @@
+{
+  "id": "clinica-exemplo",
+  "vertical": "odonto",
+  "nome_empresa": "Clínica Sorriso Exemplo",
+  "whatsapp": {
+    "waba_id": "000000000000001",
+    "phone_number_id": "000000000000002",
+    "numero_exibicao": "+55 11 90000-0001",
+    "nome_exibicao": "Clínica Sorriso"
+  },
+  "variaveis": {
+    "nome_empresa": "Clínica Sorriso Exemplo",
+    "endereco": "Rua das Flores, 123 — Centro, São Paulo/SP",
+    "horarios": "seg a sex 8h–19h, sáb 8h–12h",
+    "convenios": "Amil Dental, OdontoPrev, SulAmérica Odonto",
+    "telefone_humano": "5511900000099"
+  },
+  "transbordo": {
+    "telefone_humano": "5511900000099"
+  },
+  "n8n": {
+    "workflow_id": "morph.cliente.clinica-exemplo",
+    "nome_workflow": "morph.cliente.clinica-exemplo"
+  }
+}

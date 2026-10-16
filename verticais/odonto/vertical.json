@@ -1,0 +1,30 @@
+{
+  "nome": "odonto",
+  "descricao": "Atendimento de consultórios odontológicos: horários, agendamento e convênios.",
+  "versao": "1.0.0",
+  "prompt": "prompt.md",
+  "variaveis": ["nome_empresa", "endereco", "horarios", "convenios", "telefone_humano"],
+  "tools": [
+    {
+      "nome": "consultar_horarios",
+      "descricao": "Use quando o paciente quiser saber horários livres em uma data (e opcionalmente com um profissional).",
+      "workflow_id": "morph.odonto.consultar_horarios",
+      "args": { "data": "string YYYY-MM-DD, opcional (padrão: hoje)", "profissional": "string, opcional" },
+      "arquivo": "tools/consultar_horarios.json"
+    },
+    {
+      "nome": "agendar_consulta",
+      "descricao": "Use para marcar uma consulta depois que o paciente confirmou data, hora e nome.",
+      "workflow_id": "morph.odonto.agendar_consulta",
+      "args": { "data": "string YYYY-MM-DD", "hora": "string HH:MM", "nome_paciente": "string", "procedimento": "string, opcional" },
+      "arquivo": "tools/agendar_consulta.json"
+    },
+    {
+      "nome": "consultar_convenios",
+      "descricao": "Use quando o paciente perguntar se a clínica aceita um convênio ou quais convênios atende.",
+      "workflow_id": "morph.odonto.consultar_convenios",
+      "args": { "convenio": "string, opcional" },
+      "arquivo": "tools/consultar_convenios.json"
+    }
+  ]
+}

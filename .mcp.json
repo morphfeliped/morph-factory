@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "morph-n8n": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp/morph-n8n/dist/index.js"],
+      "env": {}
+    }
+  }
+}

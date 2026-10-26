@@ -1,0 +1,27 @@
+{
+  "id": "oficina-auto-center-exemplo",
+  "vertical": "oficina",
+  "nome_empresa": "Auto Center Exemplo",
+  "whatsapp": {
+    "waba_id": "000000000000011",
+    "phone_number_id": "000000000000012",
+    "numero_exibicao": "+55 19 90000-0011",
+    "nome_exibicao": "Auto Center Exemplo"
+  },
+  "variaveis": {
+    "nome_empresa": "Auto Center Exemplo",
+    "endereco": "Av. dos Motores, 500 — Campinas/SP",
+    "horarios": "seg a sex 8h–18h, sáb 8h–12h",
+    "veiculos_atendidos": "carros nacionais e importados (não atendemos motos)",
+    "formas_pagamento": "Pix, débito e crédito em até 6x",
+    "telefone_humano": "5519900000099"
+  },
+  "transbordo": {
+    "telefone_humano": "5519900000099"
+  },
+  "n8n": {
+    "workflow_id": "sim-cliente-oficina-auto-center-exemplo-199621",
+    "nome_workflow": "morph.cliente.oficina-auto-center-exemplo"
+  },
+  "criado_em": "2026-10-26T11:25:53.529Z"
+}

@@ -71,8 +71,10 @@ test("valida o payload_teste e avisa sobre args declarados no trigger", () => {
   const wf = lerTool("agendar_consulta.json");
   const ruim = validarSubworkflow(wf, { cliente_id: "", telefone: "abc", args: [] });
   assert.equal(ruim.erros.length, 3);
-  const bom = validarSubworkflow(wf, { ...PAYLOAD, args: { data: "2026-10-20" } });
-  assert.equal(bom.ok, true);
-  assert.ok(bom.avisos.some((a) => a.includes('"hora"')));
+  const parcial = validarSubworkflow(wf, { ...PAYLOAD, args: { data: "2026-10-20" } });
+  assert.equal(parcial.ok, true);
+  assert.deepEqual(parcial.avisos, [], "args parciais/alternativos não geram aviso");
+  const vazio = validarSubworkflow(wf, PAYLOAD);
+  assert.ok(vazio.avisos.some((a) => a.includes("nenhum dos args")));
   assert.ok(validarSubworkflow(wf).avisos.some((a) => a.includes("Sem payload_teste")));
 });

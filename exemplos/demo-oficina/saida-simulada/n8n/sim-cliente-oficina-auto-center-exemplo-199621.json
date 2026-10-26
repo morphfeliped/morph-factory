@@ -1,0 +1,527 @@
+{
+  "simulado": true,
+  "criado_em": "2026-10-26T11:25:53.528Z",
+  "request": {
+    "metodo": "POST",
+    "url": "https://seu-n8n.exemplo.com/api/v1/workflows",
+    "headers": {
+      "X-N8N-API-KEY": "***"
+    },
+    "body": {
+      "name": "morph.cliente.oficina-auto-center-exemplo",
+      "nodes": [
+        {
+          "id": "core-1",
+          "name": "Webhook Meta",
+          "type": "n8n-nodes-base.webhook",
+          "typeVersion": 2,
+          "position": [
+            0,
+            300
+          ],
+          "webhookId": "morph-core-whatsapp",
+          "parameters": {
+            "httpMethod": "POST",
+            "path": "whatsapp",
+            "responseMode": "onReceived",
+            "options": {}
+          }
+        },
+        {
+          "id": "core-2",
+          "name": "Extrair mensagem",
+          "type": "n8n-nodes-base.code",
+          "typeVersion": 2,
+          "position": [
+            220,
+            300
+          ],
+          "parameters": {
+            "jsCode": "// Normaliza o payload do webhook da WhatsApp Cloud API\nconst valor = $json.body.entry?.[0]?.changes?.[0]?.value ?? {};\nconst msg = valor.messages?.[0];\nif (!msg) return []; // status de entrega, leitura etc. são ignorados\nreturn [{ json: {\n  telefone: msg.from,\n  texto: msg.text?.body ?? '[mensagem não textual]',\n  nome_contato: valor.contacts?.[0]?.profile?.name ?? '',\n  phone_number_id: valor.metadata?.phone_number_id\n} }];"
+          }
+        },
+        {
+          "id": "core-3",
+          "name": "Config do cliente",
+          "type": "n8n-nodes-base.set",
+          "typeVersion": 3.4,
+          "position": [
+            440,
+            300
+          ],
+          "notes": "Preenchido por criar_cliente: cliente_id, vertical, prompt_template, variaveis, telefone_humano.",
+          "parameters": {
+            "mode": "manual",
+            "includeOtherFields": true,
+            "assignments": {
+              "assignments": [
+                {
+                  "id": "cfg-1",
+                  "name": "cliente_id",
+                  "value": "oficina-auto-center-exemplo",
+                  "type": "string"
+                },
+                {
+                  "id": "cfg-2",
+                  "name": "vertical",
+                  "value": "oficina",
+                  "type": "string"
+                },
+                {
+                  "id": "cfg-3",
+                  "name": "prompt_template",
+                  "value": "Você é o atendente virtual da {{nome_empresa}}, uma oficina mecânica, atendendo pelo WhatsApp.\nHoje é {{data_hoje}}. Você está falando com {{nome_contato}}.\n\n## Tom\nInformal e direto, como um bom atendente de oficina. Pode usar \"beleza\", \"fechou\", \"show\". Frases curtas, sem markdown e sem linguagem técnica desnecessária. No máximo um emoji por mensagem.\n\n## Informações da oficina\n- Endereço: {{endereco}}\n- Horário de funcionamento: {{horarios}}\n- Veículos atendidos: {{veiculos_atendidos}}\n- Formas de pagamento: {{formas_pagamento}}\n- Telefone do atendente humano: {{telefone_humano}}\n\n## O que você faz\n- Agendar revisão ou serviço → use `agendar_servico`. Precisa de placa, modelo do carro, serviço desejado, data e hora. Antes de agendar, repita os dados e peça a confirmação do cliente.\n- Saber como está o carro → use `consultar_status_os`, com o número da OS ou a placa. Status possíveis: aguardando diagnóstico, aguardando aprovação do orçamento, aguardando peça, em execução, pronto para retirada.\n- Perguntar se tem uma peça → use `consultar_pecas`, com a peça e o veículo (modelo e ano). Informe se tem, a quantidade aproximada e o preço.\n- Ser lembrado da próxima revisão → use `registrar_lembrete`, por data (ex.: \"daqui 6 meses\") ou por km (ex.: \"quando chegar em 50.000 km\"). Você só registra o pedido; o aviso é disparado depois, por outro sistema.\n- Saber quanto fica um serviço comum (troca de óleo, alinhamento e balanceamento, pastilhas, revisão de X mil km) → use `estimar_orcamento`, com o serviço e o modelo do carro.\n\n## Regras\n- Orçamento é sempre uma faixa de preço. Deixe claro que o valor final depende de avaliação do carro na oficina.\n- Não invente horários, preços, estoque ou status: use sempre as ferramentas. Se a ferramenta não achar, diga isso e ofereça falar com um atendente.\n- Nunca prometa prazo que a oficina não confirmou. Só repasse previsão se a ferramenta trouxer.\n- Não dê diagnóstico definitivo pelo WhatsApp. Pode dizer que precisa avaliar o carro e oferecer um agendamento.\n- Não atenda veículos fora de: {{veiculos_atendidos}}. Avise com educação.\n- Segurança: se o cliente falar de freio falhando, cheiro de queimado, luz de óleo acesa ou algo parecido, oriente a NÃO rodar com o carro (chamar guincho se precisar) e ofereça atendimento humano imediato pelo telefone {{telefone_humano}}. Se o cliente aceitar ou pedir ajuda imediata, responda na mensagem seguinte exatamente `[TRANSBORDO]`, sozinho.\n- Transbordo: se o cliente pedir um atendente, fizer reclamação, quiser negociar preço ou você não souber resolver, responda exatamente `[TRANSBORDO]`.\n",
+                  "type": "string"
+                },
+                {
+                  "id": "cfg-4",
+                  "name": "variaveis",
+                  "value": "{\"nome_empresa\":\"Auto Center Exemplo\",\"endereco\":\"Av. dos Motores, 500 — Campinas/SP\",\"horarios\":\"seg a sex 8h–18h, sáb 8h–12h\",\"veiculos_atendidos\":\"carros nacionais e importados (não atendemos motos)\",\"formas_pagamento\":\"Pix, débito e crédito em até 6x\",\"telefone_humano\":\"5519900000099\"}",
+                  "type": "object"
+                },
+                {
+                  "id": "cfg-5",
+                  "name": "telefone_humano",
+                  "value": "5519900000099",
+                  "type": "string"
+                }
+              ]
+            },
+            "options": {}
+          }
+        },
+        {
+          "id": "core-4",
+          "name": "Montar prompt",
+          "type": "n8n-nodes-base.code",
+          "typeVersion": 2,
+          "position": [
+            660,
+            300
+          ],
+          "parameters": {
+            "jsCode": "// Substitui {{variavel}} do prompt do vertical (contrato-core §5)\nconst cfg = $json;\nconst vars = {\n  ...(typeof cfg.variaveis === 'string' ? JSON.parse(cfg.variaveis) : cfg.variaveis),\n  data_hoje: new Date().toLocaleDateString('pt-BR'),\n  nome_contato: cfg.nome_contato || 'cliente'\n};\nconst system_prompt = cfg.prompt_template.replace(/\\{\\{\\s*(\\w+)\\s*\\}\\}/g, (_, k) => vars[k] ?? '');\nreturn [{ json: { ...cfg, system_prompt } }];"
+          }
+        },
+        {
+          "id": "core-5",
+          "name": "Agente IA",
+          "type": "@n8n/n8n-nodes-langchain.agent",
+          "typeVersion": 1.7,
+          "position": [
+            900,
+            300
+          ],
+          "parameters": {
+            "promptType": "define",
+            "text": "={{ $json.texto }}",
+            "options": {
+              "systemMessage": "={{ $json.system_prompt }}"
+            }
+          }
+        },
+        {
+          "id": "core-6",
+          "name": "Modelo LLM",
+          "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+          "typeVersion": 1.3,
+          "position": [
+            820,
+            520
+          ],
+          "parameters": {
+            "model": "claude-haiku-5-5",
+            "options": {
+              "maxTokensToSample": 600,
+              "temperature": 0.3
+            }
+          }
+        },
+        {
+          "id": "core-7",
+          "name": "Histórico",
+          "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+          "typeVersion": 1.3,
+          "position": [
+            1000,
+            520
+          ],
+          "parameters": {
+            "sessionIdType": "customKey",
+            "sessionKey": "={{ $('Config do cliente').item.json.cliente_id }}:{{ $('Extrair mensagem').item.json.telefone }}",
+            "tableName": "morph_historico",
+            "contextWindowLength": 12
+          }
+        },
+        {
+          "id": "core-8",
+          "name": "Transbordo?",
+          "type": "n8n-nodes-base.if",
+          "typeVersion": 2.2,
+          "position": [
+            1140,
+            300
+          ],
+          "parameters": {
+            "conditions": {
+              "options": {
+                "caseSensitive": true,
+                "typeValidation": "loose"
+              },
+              "combinator": "and",
+              "conditions": [
+                {
+                  "id": "cond-transbordo",
+                  "leftValue": "={{ $json.output }}",
+                  "rightValue": "[TRANSBORDO]",
+                  "operator": {
+                    "type": "string",
+                    "operation": "contains"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "core-9",
+          "name": "Avisar atendente",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4.2,
+          "position": [
+            1380,
+            180
+          ],
+          "parameters": {
+            "method": "POST",
+            "url": "=https://graph.facebook.com/v21.0/{{ $('Extrair mensagem').item.json.phone_number_id }}/messages",
+            "authentication": "predefinedCredentialType",
+            "nodeCredentialType": "whatsAppApi",
+            "sendBody": true,
+            "specifyBody": "json",
+            "jsonBody": "={ \"messaging_product\": \"whatsapp\", \"to\": \"{{ $('Config do cliente').item.json.telefone_humano }}\", \"type\": \"text\", \"text\": { \"body\": \"Transbordo: {{ $('Extrair mensagem').item.json.nome_contato }} ({{ $('Extrair mensagem').item.json.telefone }}) pediu atendimento humano.\" } }"
+          }
+        },
+        {
+          "id": "core-10",
+          "name": "Enviar resposta",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4.2,
+          "position": [
+            1380,
+            420
+          ],
+          "parameters": {
+            "method": "POST",
+            "url": "=https://graph.facebook.com/v21.0/{{ $('Extrair mensagem').item.json.phone_number_id }}/messages",
+            "authentication": "predefinedCredentialType",
+            "nodeCredentialType": "whatsAppApi",
+            "sendBody": true,
+            "specifyBody": "json",
+            "jsonBody": "={ \"messaging_product\": \"whatsapp\", \"to\": \"{{ $('Extrair mensagem').item.json.telefone }}\", \"type\": \"text\", \"text\": { \"body\": {{ JSON.stringify($json.output) }} } }"
+          }
+        },
+        {
+          "id": "tool-1",
+          "name": "Tool: agendar_servico",
+          "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+          "typeVersion": 2,
+          "position": [
+            1500,
+            620
+          ],
+          "parameters": {
+            "name": "agendar_servico",
+            "description": "Agenda revisão ou serviço na oficina. Use só depois que o cliente informou placa, modelo, serviço, data e hora e confirmou os dados.",
+            "source": "database",
+            "workflowId": {
+              "__rl": true,
+              "mode": "id",
+              "value": "sim-oficina-agendar-servico-559ff4"
+            },
+            "workflowInputs": {
+              "mappingMode": "defineBelow",
+              "value": {
+                "cliente_id": "oficina-auto-center-exemplo",
+                "telefone": "={{ $('Extrair mensagem').item.json.telefone }}",
+                "args": "={{ $fromAI('args', 'Argumentos da tool em JSON', 'json') }}"
+              }
+            }
+          }
+        },
+        {
+          "id": "tool-2",
+          "name": "Tool: consultar_status_os",
+          "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+          "typeVersion": 2,
+          "position": [
+            1680,
+            620
+          ],
+          "parameters": {
+            "name": "consultar_status_os",
+            "description": "Consulta o status da ordem de serviço quando o cliente pergunta se o carro está pronto ou como anda o serviço. Aceita número da OS ou placa.",
+            "source": "database",
+            "workflowId": {
+              "__rl": true,
+              "mode": "id",
+              "value": "sim-oficina-consultar-status-os-aec021"
+            },
+            "workflowInputs": {
+              "mappingMode": "defineBelow",
+              "value": {
+                "cliente_id": "oficina-auto-center-exemplo",
+                "telefone": "={{ $('Extrair mensagem').item.json.telefone }}",
+                "args": "={{ $fromAI('args', 'Argumentos da tool em JSON', 'json') }}"
+              }
+            }
+          }
+        },
+        {
+          "id": "tool-3",
+          "name": "Tool: consultar_pecas",
+          "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+          "typeVersion": 2,
+          "position": [
+            1860,
+            620
+          ],
+          "parameters": {
+            "name": "consultar_pecas",
+            "description": "Verifica se a oficina tem uma peça em estoque, com quantidade aproximada e preço. Use quando o cliente perguntar por uma peça.",
+            "source": "database",
+            "workflowId": {
+              "__rl": true,
+              "mode": "id",
+              "value": "sim-oficina-consultar-pecas-ea5a7c"
+            },
+            "workflowInputs": {
+              "mappingMode": "defineBelow",
+              "value": {
+                "cliente_id": "oficina-auto-center-exemplo",
+                "telefone": "={{ $('Extrair mensagem').item.json.telefone }}",
+                "args": "={{ $fromAI('args', 'Argumentos da tool em JSON', 'json') }}"
+              }
+            }
+          }
+        },
+        {
+          "id": "tool-4",
+          "name": "Tool: registrar_lembrete",
+          "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+          "typeVersion": 2,
+          "position": [
+            2040,
+            620
+          ],
+          "parameters": {
+            "name": "registrar_lembrete",
+            "description": "Registra pedido de lembrete de revisão por data (daqui X meses ou data) ou por km. O disparo é feito por outro workflow.",
+            "source": "database",
+            "workflowId": {
+              "__rl": true,
+              "mode": "id",
+              "value": "sim-oficina-registrar-lembrete-e94e5a"
+            },
+            "workflowInputs": {
+              "mappingMode": "defineBelow",
+              "value": {
+                "cliente_id": "oficina-auto-center-exemplo",
+                "telefone": "={{ $('Extrair mensagem').item.json.telefone }}",
+                "args": "={{ $fromAI('args', 'Argumentos da tool em JSON', 'json') }}"
+              }
+            }
+          }
+        },
+        {
+          "id": "tool-5",
+          "name": "Tool: estimar_orcamento",
+          "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+          "typeVersion": 2,
+          "position": [
+            2220,
+            620
+          ],
+          "parameters": {
+            "name": "estimar_orcamento",
+            "description": "Dá faixa de preço para serviço comum (óleo, alinhamento e balanceamento, pastilhas, revisão de X mil km) conforme a tabela da oficina e o modelo do carro. Sempre avisar que o valor final depende de avaliação.",
+            "source": "database",
+            "workflowId": {
+              "__rl": true,
+              "mode": "id",
+              "value": "sim-oficina-estimar-orcamento-d40c97"
+            },
+            "workflowInputs": {
+              "mappingMode": "defineBelow",
+              "value": {
+                "cliente_id": "oficina-auto-center-exemplo",
+                "telefone": "={{ $('Extrair mensagem').item.json.telefone }}",
+                "args": "={{ $fromAI('args', 'Argumentos da tool em JSON', 'json') }}"
+              }
+            }
+          }
+        }
+      ],
+      "connections": {
+        "Webhook Meta": {
+          "main": [
+            [
+              {
+                "node": "Extrair mensagem",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Extrair mensagem": {
+          "main": [
+            [
+              {
+                "node": "Config do cliente",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Config do cliente": {
+          "main": [
+            [
+              {
+                "node": "Montar prompt",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Montar prompt": {
+          "main": [
+            [
+              {
+                "node": "Agente IA",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Modelo LLM": {
+          "ai_languageModel": [
+            [
+              {
+                "node": "Agente IA",
+                "type": "ai_languageModel",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Histórico": {
+          "ai_memory": [
+            [
+              {
+                "node": "Agente IA",
+                "type": "ai_memory",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Agente IA": {
+          "main": [
+            [
+              {
+                "node": "Transbordo?",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Transbordo?": {
+          "main": [
+            [
+              {
+                "node": "Avisar atendente",
+                "type": "main",
+                "index": 0
+              }
+            ],
+            [
+              {
+                "node": "Enviar resposta",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Tool: agendar_servico": {
+          "ai_tool": [
+            [
+              {
+                "node": "Agente IA",
+                "type": "ai_tool",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Tool: consultar_status_os": {
+          "ai_tool": [
+            [
+              {
+                "node": "Agente IA",
+                "type": "ai_tool",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Tool: consultar_pecas": {
+          "ai_tool": [
+            [
+              {
+                "node": "Agente IA",
+                "type": "ai_tool",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Tool: registrar_lembrete": {
+          "ai_tool": [
+            [
+              {
+                "node": "Agente IA",
+                "type": "ai_tool",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Tool: estimar_orcamento": {
+          "ai_tool": [
+            [
+              {
+                "node": "Agente IA",
+                "type": "ai_tool",
+                "index": 0
+              }
+            ]
+          ]
+        }
+      },
+      "settings": {
+        "executionOrder": "v1"
+      }
+    }
+  },
+  "resposta_simulada": {
+    "id": "sim-cliente-oficina-auto-center-exemplo-199621",
+    "name": "morph.cliente.oficina-auto-center-exemplo",
+    "active": false
+  }
+}

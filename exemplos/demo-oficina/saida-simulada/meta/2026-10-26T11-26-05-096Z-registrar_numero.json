@@ -1,0 +1,18 @@
+{
+  "simulado": true,
+  "acao": "registrar_numero",
+  "request": {
+    "metodo": "POST",
+    "url": "https://graph.facebook.com/v21.0/000000000000012/register",
+    "body": {
+      "messaging_product": "whatsapp",
+      "pin": "******"
+    },
+    "headers": {
+      "Authorization": "Bearer ***"
+    }
+  },
+  "resposta_simulada": {
+    "success": true
+  }
+}

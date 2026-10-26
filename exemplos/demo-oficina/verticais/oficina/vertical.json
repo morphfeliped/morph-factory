@@ -1,0 +1,73 @@
+{
+  "nome": "oficina",
+  "descricao": "Atendente de WhatsApp para oficinas mecânicas e auto centers: agenda serviços, consulta OS e peças, registra lembretes de revisão e estima orçamentos.",
+  "versao": "0.1.0",
+  "prompt": "prompt.md",
+  "variaveis": [
+    "nome_empresa",
+    "endereco",
+    "horarios",
+    "veiculos_atendidos",
+    "formas_pagamento",
+    "telefone_humano"
+  ],
+  "tools": [
+    {
+      "nome": "agendar_servico",
+      "descricao": "Agenda revisão ou serviço na oficina. Use só depois que o cliente informou placa, modelo, serviço, data e hora e confirmou os dados.",
+      "workflow_id": "sim-oficina-agendar-servico-559ff4",
+      "args": {
+        "placa": "string, obrigatório (ex.: ABC1D23)",
+        "modelo": "string, obrigatório (ex.: Onix 2019)",
+        "servico": "string, obrigatório",
+        "data": "string YYYY-MM-DD, obrigatório",
+        "hora": "string HH:MM, obrigatório"
+      },
+      "arquivo": "tools/agendar_servico.json"
+    },
+    {
+      "nome": "consultar_status_os",
+      "descricao": "Consulta o status da ordem de serviço quando o cliente pergunta se o carro está pronto ou como anda o serviço. Aceita número da OS ou placa.",
+      "workflow_id": "sim-oficina-consultar-status-os-aec021",
+      "args": {
+        "numero_os": "string, opcional (obrigatório se não houver placa)",
+        "placa": "string, opcional (obrigatório se não houver numero_os)"
+      },
+      "arquivo": "tools/consultar_status_os.json"
+    },
+    {
+      "nome": "consultar_pecas",
+      "descricao": "Verifica se a oficina tem uma peça em estoque, com quantidade aproximada e preço. Use quando o cliente perguntar por uma peça.",
+      "workflow_id": "sim-oficina-consultar-pecas-ea5a7c",
+      "args": {
+        "peca": "string, obrigatório (ex.: pastilha de freio)",
+        "veiculo": "string, opcional mas recomendado (ex.: Onix 2019)"
+      },
+      "arquivo": "tools/consultar_pecas.json"
+    },
+    {
+      "nome": "registrar_lembrete",
+      "descricao": "Registra pedido de lembrete de revisão por data (daqui X meses ou data) ou por km. O disparo é feito por outro workflow.",
+      "workflow_id": "sim-oficina-registrar-lembrete-e94e5a",
+      "args": {
+        "tipo": "string 'data' ou 'km', obrigatório",
+        "meses": "number 1-36, usar com tipo=data (alternativa a data)",
+        "data": "string YYYY-MM-DD, usar com tipo=data (alternativa a meses)",
+        "km": "number, obrigatório com tipo=km",
+        "placa": "string, opcional"
+      },
+      "arquivo": "tools/registrar_lembrete.json"
+    },
+    {
+      "nome": "estimar_orcamento",
+      "descricao": "Dá faixa de preço para serviço comum (óleo, alinhamento e balanceamento, pastilhas, revisão de X mil km) conforme a tabela da oficina e o modelo do carro. Sempre avisar que o valor final depende de avaliação.",
+      "workflow_id": "sim-oficina-estimar-orcamento-d40c97",
+      "args": {
+        "servico": "string, obrigatório",
+        "modelo": "string, obrigatório (modelo e ano)"
+      },
+      "arquivo": "tools/estimar_orcamento.json"
+    }
+  ],
+  "registrado_em": "2026-10-26T11:24:51.998Z"
+}

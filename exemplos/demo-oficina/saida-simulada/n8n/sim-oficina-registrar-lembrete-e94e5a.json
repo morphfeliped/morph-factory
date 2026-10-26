@@ -1,0 +1,172 @@
+{
+  "simulado": true,
+  "criado_em": "2026-10-26T11:24:36.567Z",
+  "request": {
+    "metodo": "POST",
+    "url": "https://seu-n8n.exemplo.com/api/v1/workflows",
+    "headers": {
+      "X-N8N-API-KEY": "***"
+    },
+    "body": {
+      "name": "morph.oficina.registrar_lembrete",
+      "nodes": [
+        {
+          "id": "t1",
+          "name": "Execute Workflow Trigger",
+          "type": "n8n-nodes-base.executeWorkflowTrigger",
+          "typeVersion": 1.1,
+          "position": [
+            0,
+            0
+          ],
+          "parameters": {
+            "inputSource": "jsonExample",
+            "jsonExample": "{\n  \"cliente_id\": \"oficina-auto-center-exemplo\",\n  \"telefone\": \"5519999990000\",\n  \"args\": { \"tipo\": \"data\", \"meses\": 6, \"placa\": \"ABC1D23\" }\n}"
+          }
+        },
+        {
+          "id": "t2",
+          "name": "Validar args",
+          "type": "n8n-nodes-base.code",
+          "typeVersion": 2,
+          "position": [
+            220,
+            0
+          ],
+          "parameters": {
+            "jsCode": "const { cliente_id, telefone, args = {} } = $json;\nconst tipo = String(args.tipo ?? '').toLowerCase().trim();\nconst placa = String(args.placa ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');\nif (tipo !== 'data' && tipo !== 'km') return [{ json: { invalido: true, motivo: 'tipo_invalido' } }];\nif (placa && !/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(placa)) return [{ json: { invalido: true, motivo: 'placa_invalida' } }];\nlet meses = null, data = null, km = null;\nif (tipo === 'km') {\n  km = Number(String(args.km ?? '').replace(/\\D/g, ''));\n  if (!km || km < 1000) return [{ json: { invalido: true, motivo: 'km_invalido' } }];\n} else if (args.meses !== undefined && args.meses !== '') {\n  meses = Number(args.meses);\n  if (!Number.isInteger(meses) || meses < 1 || meses > 36) return [{ json: { invalido: true, motivo: 'meses_invalido' } }];\n} else {\n  data = String(args.data ?? '').trim();\n  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(data)) return [{ json: { invalido: true, motivo: 'data_invalida' } }];\n}\nreturn [{ json: { cliente_id, telefone, tipo, placa, meses, data, km } }];"
+          }
+        },
+        {
+          "id": "t-if",
+          "name": "Args ok?",
+          "type": "n8n-nodes-base.if",
+          "typeVersion": 2.2,
+          "position": [
+            440,
+            0
+          ],
+          "parameters": {
+            "conditions": {
+              "options": {
+                "caseSensitive": true,
+                "typeValidation": "loose"
+              },
+              "combinator": "and",
+              "conditions": [
+                {
+                  "id": "args-ok",
+                  "leftValue": "={{ $json.invalido }}",
+                  "rightValue": "",
+                  "operator": {
+                    "type": "boolean",
+                    "operation": "notTrue",
+                    "singleValue": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "t3",
+          "name": "Criar lembrete",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4.2,
+          "position": [
+            660,
+            0
+          ],
+          "parameters": {
+            "method": "POST",
+            "url": "={{ $env.MORPH_API_URL }}/clientes/{{ $json.cliente_id }}/lembretes",
+            "sendBody": true,
+            "specifyBody": "json",
+            "jsonBody": "={{ JSON.stringify({ telefone: $json.telefone, tipo: $json.tipo, placa: $json.placa, meses: $json.meses, data: $json.data, km: $json.km }) }}",
+            "options": {
+              "response": {
+                "response": {
+                  "neverError": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "t4",
+          "name": "Retorno",
+          "type": "n8n-nodes-base.code",
+          "typeVersion": 2,
+          "position": [
+            880,
+            0
+          ],
+          "parameters": {
+            "jsCode": "const entrada = $('Validar args').item.json;\nif (entrada.invalido) {\n  const msgs = {\n    tipo_invalido: 'Quer ser lembrado por data ou por km?',\n    placa_invalida: 'Não entendi a placa. Pode mandar de novo?',\n    km_invalido: 'Não entendi a quilometragem. Quantos km você quer pro aviso?',\n    meses_invalido: 'Não entendi o prazo. Daqui quantos meses?',\n    data_invalida: 'Não entendi a data. Pode mandar no formato dia/mês?'\n  };\n  return [{ json: { texto: msgs[entrada.motivo] ?? 'Faltou algum dado pro lembrete.', dados: { erro: entrada.motivo } } }];\n}\nif ($json.erro) {\n  return [{ json: { texto: 'Não consegui registrar o lembrete agora. Quer que eu chame um atendente?', dados: { erro: $json.erro } } }];\n}\nlet quando;\nif (entrada.tipo === 'km') quando = `quando o carro chegar em ${entrada.km} km`;\nelse if (entrada.meses) quando = `daqui ${entrada.meses} ${entrada.meses === 1 ? 'mês' : 'meses'}`;\nelse quando = `em ${entrada.data}`;\nreturn [{ json: { texto: `Show, anotado! Te aviso ${quando}.`, dados: { lembrete_id: $json.lembrete_id ?? null, tipo: entrada.tipo, meses: entrada.meses, data: entrada.data, km: entrada.km, placa: entrada.placa } } }];"
+          }
+        }
+      ],
+      "connections": {
+        "Execute Workflow Trigger": {
+          "main": [
+            [
+              {
+                "node": "Validar args",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Validar args": {
+          "main": [
+            [
+              {
+                "node": "Args ok?",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Args ok?": {
+          "main": [
+            [
+              {
+                "node": "Criar lembrete",
+                "type": "main",
+                "index": 0
+              }
+            ],
+            [
+              {
+                "node": "Retorno",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Criar lembrete": {
+          "main": [
+            [
+              {
+                "node": "Retorno",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        }
+      },
+      "settings": {
+        "executionOrder": "v1"
+      }
+    }
+  },
+  "resposta_simulada": {
+    "id": "sim-oficina-registrar-lembrete-e94e5a",
+    "name": "morph.oficina.registrar_lembrete",
+    "active": false
+  }
+}

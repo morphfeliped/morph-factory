@@ -22,6 +22,8 @@ O core chama a tool via **Execute Workflow Trigger** com:
 - `cliente_id`: id do arquivo em `clientes/`. Use-o para buscar a config/sistemas do cliente.
 - `telefone`: do usuário final, formato E.164 sem `+`.
 - `args`: argumentos que o LLM extraiu da conversa. Declare-os no `jsonExample` do trigger.
+  Datas em `YYYY-MM-DD`, horas em `HH:MM`, placas sem traço (`ABC1D23`). Datas relativas
+  ("amanhã", "sexta") o LLM resolve com `{{data_hoje}}` antes de chamar a tool.
 
 ## 3. Saída de toda tool
 O último nó chama-se **`Retorno`** (Code ou Set) e devolve **um** item:
@@ -40,7 +42,7 @@ Execute Workflow Trigger → Validar args → Args ok? ─true→ HTTP Request �
 - **`Args ok?`** (IF, `$json.invalido` *is not true*): obrigatório depois de `Validar args`, para que
   args inválidos nunca cheguem à API. O validador do MCP reprova a ligação direta no HTTP.
 - Tool sem args obrigatórios pode pular os dois: `Trigger → HTTP Request → Retorno`.
-- Todos os nós conectados a partir do trigger; 3–5 nós. Nomes `Validar args`, `Args ok?` e `Retorno` são fixos.
+- Todos os nós conectados a partir do trigger; 3–6 nós. Nomes `Validar args`, `Args ok?` e `Retorno` são fixos.
 
 **API da Morph** — integrações usam `{{ $env.MORPH_API_URL }}/clientes/<cliente_id>/<recurso>`
 (a Morph fala com o sistema do cliente). Configure o HTTP com `neverError: true`: a API responde JSON
@@ -57,6 +59,8 @@ Toda variável do cliente usada no prompt vira obrigatória na criação do clie
 ## 6. Transbordo humano
 É do core. O prompt só precisa instruir: *"se o usuário pedir um atendente ou você não souber resolver,
 responda exatamente `[TRANSBORDO]`"*. O core detecta a marca e avisa `{{telefone_humano}}`.
+A marca vem **sozinha** na mensagem (o texto dela não é enviado ao usuário). Se for preciso orientar
+antes (ex.: segurança), oriente numa mensagem e use `[TRANSBORDO]` na seguinte.
 
 ## 7. Convenções de nomes
 | Item | Padrão | Exemplo |

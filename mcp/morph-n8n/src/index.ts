@@ -227,7 +227,7 @@ server.registerTool(
       { id: "cfg-2", name: "vertical", value: vertical, type: "string" },
       { id: "cfg-3", name: "prompt_template", value: promptTemplate, type: "string" },
       { id: "cfg-4", name: "variaveis", value: JSON.stringify(variaveis), type: "object" },
-      { id: "cfg-5", name: "telefone_humano", value: cfg.transbordo?.telefone_humano ?? "", type: "string" },
+      { id: "cfg-5", name: "telefone_humano", value: cfg.transbordo?.telefone_humano ?? variaveis.telefone_humano ?? "", type: "string" },
     ];
     // Injeta um nó "Tool Workflow" por tool do vertical, ligado ao Agente IA (conexão ai_tool)
     v.tools.forEach((t: any, i: number) => {

@@ -1,0 +1,166 @@
+{
+  "name": "morph.oficina.consultar_status_os",
+  "nodes": [
+    {
+      "id": "t1",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"cliente_id\": \"oficina-auto-center-exemplo\",\n  \"telefone\": \"5519999990000\",\n  \"args\": { \"numero_os\": \"1234\", \"placa\": \"ABC1D23\" }\n}"
+      }
+    },
+    {
+      "id": "t2",
+      "name": "Validar args",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const { cliente_id, args = {} } = $json;\nconst numero_os = String(args.numero_os ?? '').replace(/\\D/g, '');\nconst placa = String(args.placa ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');\nif (!numero_os && !placa) return [{ json: { invalido: true, motivo: 'informe_os_ou_placa' } }];\nif (!numero_os && !/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(placa)) return [{ json: { invalido: true, motivo: 'placa_invalida' } }];\nreturn [{ json: { cliente_id, numero_os, placa } }];"
+      }
+    },
+    {
+      "id": "t-if",
+      "name": "Args ok?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "args-ok",
+              "leftValue": "={{ $json.invalido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "notTrue",
+                "singleValue": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "t3",
+      "name": "Buscar OS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.MORPH_API_URL }}/clientes/{{ $json.cliente_id }}/ordens-servico",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "numero_os",
+              "value": "={{ $json.numero_os }}"
+            },
+            {
+              "name": "placa",
+              "value": "={{ $json.placa }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "t4",
+      "name": "Retorno",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const entrada = $('Validar args').item.json;\nif (entrada.invalido) {\n  const texto = entrada.motivo === 'placa_invalida'\n    ? 'Não entendi a placa. Pode mandar de novo?'\n    : 'Me passa o número da OS ou a placa do carro?';\n  return [{ json: { texto, dados: { erro: entrada.motivo } } }];\n}\nif ($json.erro) {\n  const texto = $json.erro === 'nao_encontrado'\n    ? 'Não achei essa OS. Confere o número ou a placa?'\n    : 'Não consegui consultar agora. Quer que eu chame um atendente?';\n  return [{ json: { texto, dados: { erro: $json.erro } } }];\n}\nconst nomes = {\n  aguardando_diagnostico: 'aguardando diagnóstico',\n  aguardando_aprovacao: 'aguardando aprovação do orçamento',\n  aguardando_peca: 'aguardando peça',\n  em_execucao: 'em execução',\n  pronto_retirada: 'pronto para retirada'\n};\nconst status = $json.status ?? '';\nlet texto = `OS ${$json.numero_os ?? entrada.numero_os}: ${nomes[status] ?? status}.`;\nif ($json.previsao_confirmada) texto += ` Previsão confirmada: ${$json.previsao_confirmada}.`;\nreturn [{ json: { texto, dados: { numero_os: $json.numero_os ?? entrada.numero_os, placa: $json.placa ?? entrada.placa, status, previsao_confirmada: $json.previsao_confirmada ?? null } } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validar args",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar args": {
+      "main": [
+        [
+          {
+            "node": "Args ok?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Args ok?": {
+      "main": [
+        [
+          {
+            "node": "Buscar OS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retorno",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar OS": {
+      "main": [
+        [
+          {
+            "node": "Retorno",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

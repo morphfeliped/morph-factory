@@ -85,7 +85,7 @@ de saída dos agentes para o n8n e a Meta — por isso dá para trocar simulaç�
 | `ler_contrato_core()` | lê `core/contrato-core.md` | igual |
 | `listar_verticais()` | lista `verticais/` | igual |
 | `criar_subworkflow(nome, vertical, workflow_json)` | valida, salva a tool, grava o request em `saida-simulada/n8n/`, devolve id falso | `POST /api/v1/workflows` |
-| `validar_workflow(id, payload_teste)` | validação estática: trigger, nós conectados, nó `Retorno` com `{ texto, dados }`, formato do payload | mesma validação sobre o workflow publicado |
+| `validar_workflow(id, payload_teste)` | validação estática: trigger, nós conectados, IF `Args ok?` antes da API, nó `Retorno` com `{ texto, dados }`, formato do payload | mesma validação sobre o workflow publicado |
 | `registrar_vertical(nome, descricao, tools[])` | grava `verticais/<nome>/vertical.json` | igual |
 | `criar_cliente(vertical, config)` | grava `clientes/<id>.json` e monta o workflow do cliente (core + tools) | publica o workflow no n8n |
 | `meta_inscrever_waba(waba_id)` | grava o request em `saida-simulada/meta/` | `POST /{waba_id}/subscribed_apps` |
@@ -108,7 +108,9 @@ morph-fabrica/
 ├─ clientes/                  clinica-exemplo.json
 ├─ briefings/oficina.md       briefing do vertical novo
 ├─ saida-simulada/            o que o MCP "enviaria" ao n8n/Meta (fora do git)
-└─ mcp/morph-n8n/             servidor MCP (Node + TypeScript)
+├─ exemplos/demo-oficina/     resultado de uma execução real (plano B da apresentação)
+├─ scripts/resetar-demo.mjs   zera o que os agentes geraram
+└─ mcp/morph-n8n/             servidor MCP (Node + TypeScript) + testes
 ```
 
 ## Como rodar a demo
@@ -151,14 +153,26 @@ importar qualquer `request.body` no editor do n8n) e `saida-simulada/meta/` (os 
 ### Rodar de novo do zero
 
 ```bash
-# bash
-rm -rf verticais/oficina clientes/oficina-*.json saida-simulada/n8n saida-simulada/meta saida-simulada/*.md
+node scripts/resetar-demo.mjs --sim   # mostra o que seria apagado
+node scripts/resetar-demo.mjs         # apaga o que os agentes geraram (mantém odonto e clinica-exemplo)
 ```
-```powershell
-# PowerShell
-Remove-Item -Recurse -Force verticais/oficina, saida-simulada/n8n, saida-simulada/meta -ErrorAction SilentlyContinue
-Remove-Item clientes/oficina-*.json, saida-simulada/*.md -ErrorAction SilentlyContinue
+
+### Plano B para a apresentação
+
+Em [exemplos/demo-oficina/](exemplos/demo-oficina/) está o resultado de uma execução real do
+`/criar-produto oficina`: vertical, cliente, workflows e requests simulados e o relatório. Se a internet
+ou o tempo falharem na hora, mostre essa pasta. Os agentes geram tools um pouco diferentes a cada execução.
+
+## Desenvolvimento
+
+```bash
+cd mcp/morph-n8n
+npm test                      # build + testes do validador (inclui: as tools do odonto continuam válidas)
+npm run validar -- oficina    # valida pelo terminal todas as tools de um vertical
 ```
+
+O CI do GitHub ([.github/workflows/ci.yml](.github/workflows/ci.yml)) roda build e testes a cada push.
+Depois de mudar o código do MCP, rode `npm run build` e reconecte o servidor no Claude Code (`/mcp`).
 
 ## Ver os agentes trabalhando (Habblaud)
 
@@ -175,6 +189,7 @@ npm run mod:install             # conecta ao Claude Code (reabra a sessão ou us
 ```
 
 Abra **http://localhost:4747** e, em outra janela, rode `/criar-produto oficina` no Claude Code.
+Se clonar o Habblaud dentro desta pasta, tudo bem: `habblaud/` está no `.gitignore`.
 
 > O Habblaud roda em macOS/Linux. No Windows, use **WSL** ou a opção **Docker**. Ele só lê os arquivos
 > de sessão que o Claude Code já grava em `~/.claude*/` e escuta apenas em 127.0.0.1.

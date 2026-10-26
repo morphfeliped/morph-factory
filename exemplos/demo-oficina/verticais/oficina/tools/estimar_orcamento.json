@@ -1,0 +1,166 @@
+{
+  "name": "morph.oficina.estimar_orcamento",
+  "nodes": [
+    {
+      "id": "t1",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"cliente_id\": \"oficina-auto-center-exemplo\",\n  \"telefone\": \"5519999990000\",\n  \"args\": { \"servico\": \"troca de óleo\", \"modelo\": \"Onix 2019\" }\n}"
+      }
+    },
+    {
+      "id": "t2",
+      "name": "Validar args",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const { cliente_id, args = {} } = $json;\nconst servico = String(args.servico ?? '').trim();\nconst modelo = String(args.modelo ?? '').trim();\nif (!servico) return [{ json: { invalido: true, motivo: 'servico_obrigatorio' } }];\nif (!modelo) return [{ json: { invalido: true, motivo: 'modelo_obrigatorio' } }];\nreturn [{ json: { cliente_id, servico, modelo } }];"
+      }
+    },
+    {
+      "id": "t-if",
+      "name": "Args ok?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "args-ok",
+              "leftValue": "={{ $json.invalido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "notTrue",
+                "singleValue": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "t3",
+      "name": "Buscar estimativa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.MORPH_API_URL }}/clientes/{{ $json.cliente_id }}/orcamentos/estimativa",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "servico",
+              "value": "={{ $json.servico }}"
+            },
+            {
+              "name": "modelo",
+              "value": "={{ $json.modelo }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "t4",
+      "name": "Retorno",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const entrada = $('Validar args').item.json;\nif (entrada.invalido) {\n  const texto = entrada.motivo === 'modelo_obrigatorio'\n    ? 'Qual o modelo e o ano do carro?'\n    : 'Qual serviço você quer orçar?';\n  return [{ json: { texto, dados: { erro: entrada.motivo } } }];\n}\nif ($json.erro) {\n  const texto = $json.erro === 'nao_encontrado'\n    ? 'Esse serviço eu não tenho na tabela. Quer falar com um atendente pra passar um orçamento?'\n    : 'Não consegui calcular agora. Quer que eu chame um atendente?';\n  return [{ json: { texto, dados: { erro: $json.erro } } }];\n}\nconst fmt = v => `R$ ${Number(v).toFixed(2).replace('.', ',')}`;\nconst texto = `${entrada.servico} no ${entrada.modelo}: de ${fmt($json.faixa_min)} a ${fmt($json.faixa_max)}. É uma estimativa, o valor final depende da avaliação do carro na oficina.`;\nreturn [{ json: { texto, dados: { servico: entrada.servico, modelo: entrada.modelo, faixa_min: $json.faixa_min, faixa_max: $json.faixa_max } } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validar args",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar args": {
+      "main": [
+        [
+          {
+            "node": "Args ok?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Args ok?": {
+      "main": [
+        [
+          {
+            "node": "Buscar estimativa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retorno",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar estimativa": {
+      "main": [
+        [
+          {
+            "node": "Retorno",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

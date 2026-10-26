@@ -27,7 +27,8 @@ Você coordena, confere e reporta. Mantenha seu contexto pequeno.
 4. **Cliente de exemplo** — chame `criar_cliente(vertical, config)` usando o cliente de exemplo do briefing.
    Siga o formato de `clientes/clinica-exemplo.json`: `nome_empresa`, `whatsapp` (`waba_id`,
    `phone_number_id`, `numero_exibicao`, `nome_exibicao` — use ids fictícios numéricos),
-   `variaveis` com **todas** as chaves de `vertical.json → variaveis`, e `transbordo.telefone_humano`.
+   `variaveis` com **todas** as chaves de `vertical.json → variaveis` (o transbordo usa
+   `variaveis.telefone_humano`; `transbordo.telefone_humano` só se for outro número).
 5. **WhatsApp** — delegue ao subagente **`config-meta`** passando o `cliente_id` criado.
    Com `DRY_RUN=false`, peça antes ao usuário o PIN de 6 dígitos do número e repasse só na mensagem
    ao subagente (nunca grave em arquivo).

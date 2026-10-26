@@ -1,0 +1,15 @@
+{
+  "simulado": true,
+  "acao": "inscrever_waba",
+  "request": {
+    "metodo": "POST",
+    "url": "https://graph.facebook.com/v21.0/000000000000011/subscribed_apps",
+    "body": {},
+    "headers": {
+      "Authorization": "Bearer ***"
+    }
+  },
+  "resposta_simulada": {
+    "success": true
+  }
+}

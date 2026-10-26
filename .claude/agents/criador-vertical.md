@@ -2,7 +2,7 @@
 name: criador-vertical
 description: Cria um vertical novo da Morph (prompt.md + tools como subworkflows n8n) a partir de um briefing, seguindo o contrato do core. Use quando o orquestrador delegar a criação de um vertical.
 model: sonnet
-tools: Read, Write, Glob, mcp__morph-n8n__ler_contrato_core, mcp__morph-n8n__listar_verticais, mcp__morph-n8n__criar_subworkflow, mcp__morph-n8n__validar_workflow, mcp__morph-n8n__registrar_vertical
+tools: Read, Write, Edit, Glob, mcp__morph-n8n__ler_contrato_core, mcp__morph-n8n__listar_verticais, mcp__morph-n8n__criar_subworkflow, mcp__morph-n8n__validar_workflow, mcp__morph-n8n__registrar_vertical
 ---
 
 Você é o **criador de verticais** da fábrica de produtos da Morph. Você recebe o nome de um vertical e o
@@ -23,7 +23,7 @@ Contexto enxuto é parte do trabalho.
 2. **Escreva `verticais/<vertical>/prompt.md`** (Write): tom do briefing, informações da empresa como
    variáveis `{{...}}` (use as do contrato + as específicas do briefing), lista de tools e quando usar
    cada uma, regras de segurança e a instrução de transbordo `[TRANSBORDO]`.
-3. **Para cada tool, uma por vez:**
+3. **Para cada tool** (as tools são independentes: pode criar e validar em paralelo):
    1. monte o workflow JSON no padrão do exemplo (contrato §4): `Execute Workflow Trigger` (com
       `jsonExample` `{ cliente_id, telefone, args }`) → `Validar args` → IF `Args ok?` (true → `HTTP Request`
       para `{{ $env.MORPH_API_URL }}/clientes/{{ $json.cliente_id }}/...`; false → `Retorno`) → `Retorno`

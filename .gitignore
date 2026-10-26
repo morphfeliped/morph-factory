@@ -7,6 +7,13 @@ dist/
 saida-simulada/*
 !saida-simulada/.gitkeep
 
+# Verticais e clientes gerados pelos agentes na demo (o resultado de referência fica em exemplos/).
+# Para versionar um vertical novo de verdade, adicione uma linha "!verticais/<nome>/".
+verticais/*
+!verticais/odonto/
+clientes/*
+!clientes/clinica-exemplo.json
+
 .claude/settings.local.json
 
 # Habblaud clonado dentro da pasta para a apresentação (repositório próprio, não versionar aqui)

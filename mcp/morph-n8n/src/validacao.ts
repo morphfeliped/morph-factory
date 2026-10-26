@@ -136,9 +136,10 @@ export function validarSubworkflow(wf: any, payloadTeste?: any): ResultadoValida
       }
       if (!p.args || typeof p.args !== "object" || Array.isArray(p.args)) erros.push("payload_teste.args deve ser um objeto.");
       else if (triggers.length === 1) {
+        // Só avisa se nenhum arg declarado veio: tools com args alternativos (OS ou placa) não geram falso positivo
         const esperados = argsDoTrigger(triggers[0]);
-        for (const chave of esperados) {
-          if (!(chave in p.args)) avisos.push(`payload_teste.args não traz "${chave}", declarado no trigger.`);
+        if (esperados.length && !esperados.some((chave) => chave in p.args)) {
+          avisos.push(`payload_teste.args não traz nenhum dos args declarados no trigger (${esperados.join(", ")}).`);
         }
       }
     }

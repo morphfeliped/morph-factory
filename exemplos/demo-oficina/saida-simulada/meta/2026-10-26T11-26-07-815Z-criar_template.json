@@ -1,0 +1,35 @@
+{
+  "simulado": true,
+  "acao": "criar_template",
+  "request": {
+    "metodo": "POST",
+    "url": "https://graph.facebook.com/v21.0/000000000000011/message_templates",
+    "body": {
+      "name": "boas_vindas_oficina",
+      "language": "pt_BR",
+      "category": "MARKETING",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Oi, {{1}}! Aqui é o pessoal da {{2}} no WhatsApp. Me conta o que tá acontecendo com o carro que eu te ajudo.",
+          "example": {
+            "body_text": [
+              [
+                "Carlos",
+                "Auto Center Exemplo"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    "headers": {
+      "Authorization": "Bearer ***"
+    }
+  },
+  "resposta_simulada": {
+    "id": "sim-template-1793013967815",
+    "status": "PENDING",
+    "category": "MARKETING"
+  }
+}

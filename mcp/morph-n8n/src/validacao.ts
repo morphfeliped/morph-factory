@@ -5,6 +5,8 @@
 
 export const TIPO_TRIGGER_TOOL = "n8n-nodes-base.executeWorkflowTrigger";
 export const NOME_NO_RETORNO = "Retorno";
+export const NOME_NO_VALIDAR = "Validar args";
+export const NOME_NO_ARGS_OK = "Args ok?";
 
 export interface ResultadoValidacao {
   ok: boolean;
@@ -109,7 +111,21 @@ export function validarSubworkflow(wf: any, payloadTeste?: any): ResultadoValida
     }
   }
 
-  // 6. Payload de teste no formato de entrada do contrato
+  // 6. Args inválidos não podem chegar à API: "Validar args" precisa passar pelo IF "Args ok?"
+  const validar = nodes.find((n) => n.name === NOME_NO_VALIDAR);
+  if (validar) {
+    for (const d of destinos(connections, validar.name)) {
+      const alvo = nodes.find((n) => n.name === d);
+      if (alvo && alvo.type !== "n8n-nodes-base.if") {
+        erros.push(
+          `"${NOME_NO_VALIDAR}" liga direto em "${d}": args inválidos chamariam a API mesmo assim. ` +
+            `Coloque o IF "${NOME_NO_ARGS_OK}" (ramo true → "${d}", ramo false → "${NOME_NO_RETORNO}").`,
+        );
+      }
+    }
+  }
+
+  // 7. Payload de teste no formato de entrada do contrato
   if (payloadTeste !== undefined) {
     const p = payloadTeste;
     if (!p || typeof p !== "object") erros.push("payload_teste deve ser um objeto { cliente_id, telefone, args }.");

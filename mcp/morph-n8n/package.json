@@ -11,7 +11,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "dev": "tsc -p tsconfig.json --watch"
+    "dev": "tsc -p tsconfig.json --watch",
+    "validar": "node dist/validar-vertical.js",
+    "test":"tsc -p tsconfig.json && node --test \"dist/**/*.test.js\""
   },
   "engines": {
     "node": ">=18"

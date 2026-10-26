@@ -8,3 +8,6 @@ saida-simulada/*
 !saida-simulada/.gitkeep
 
 .claude/settings.local.json
+
+# Habblaud clonado dentro da pasta para a apresentação (repositório próprio, não versionar aqui)
+habblaud/

@@ -24,10 +24,10 @@ Contexto enxuto é parte do trabalho.
    variáveis `{{...}}` (use as do contrato + as específicas do briefing), lista de tools e quando usar
    cada uma, regras de segurança e a instrução de transbordo `[TRANSBORDO]`.
 3. **Para cada tool, uma por vez:**
-   1. monte o workflow JSON no padrão do exemplo: `Execute Workflow Trigger` (com `jsonExample`
-      `{ cliente_id, telefone, args }`) → `Validar args` → `HTTP Request` para
-      `{{ $env.MORPH_API_URL }}/clientes/{{ $json.cliente_id }}/...` → `Retorno` devolvendo `{ texto, dados }`
-      (erro = `texto` amigável + `dados.erro`, nunca exceção);
+   1. monte o workflow JSON no padrão do exemplo (contrato §4): `Execute Workflow Trigger` (com
+      `jsonExample` `{ cliente_id, telefone, args }`) → `Validar args` → IF `Args ok?` (true → `HTTP Request`
+      para `{{ $env.MORPH_API_URL }}/clientes/{{ $json.cliente_id }}/...`; false → `Retorno`) → `Retorno`
+      devolvendo `{ texto, dados }` (erro = `texto` amigável + `dados.erro`, nunca exceção);
    2. `criar_subworkflow(nome, vertical, workflow_json)` — ele também salva `tools/<nome>.json`;
    3. `validar_workflow(id, payload_teste)` com um payload realista do briefing;
    4. se vier `ok: false`, corrija **exatamente** os erros apontados e repita 2–3 (máx. 3 tentativas).

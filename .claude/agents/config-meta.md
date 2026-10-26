@@ -18,7 +18,7 @@ e deixa o WhatsApp do cliente pronto para o core.
    {
      "name": "boas_vindas_<vertical>",
      "language": "pt_BR",
-     "category": "UTILITY",
+     "category": "MARKETING",
      "components": [{
        "type": "BODY",
        "text": "Olá, {{1}}! Aqui é o atendimento da {{2}} pelo WhatsApp. Como posso ajudar?",
@@ -27,6 +27,10 @@ e deixa o WhatsApp do cliente pronto para o core.
    }
    ```
    Adapte o texto ao tom do vertical (leia o `prompt.md` do vertical só se precisar).
+   **Categoria:** boas-vindas genérica é `MARKETING` pelas regras da Meta — `UTILITY` só vale para
+   mensagem ligada a uma transação/ação do usuário (confirmação de agendamento, status de pedido).
+   Usar `UTILITY` num texto genérico leva a reclassificação ou rejeição. No `example`, use um nome
+   fictício comum e o `nome_empresa` do cliente.
 
 ## Checklist de ações humanas
 Grave `saida-simulada/meta/checklist-<cliente_id>.md` com as etapas que **nenhum agente consegue fazer**,

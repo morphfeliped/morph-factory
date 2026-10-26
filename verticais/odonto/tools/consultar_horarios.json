@@ -6,7 +6,10 @@
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
-      "position": [0, 0],
+      "position": [
+        0,
+        0
+      ],
       "parameters": {
         "inputSource": "jsonExample",
         "jsonExample": "{\n  \"cliente_id\": \"clinica-exemplo\",\n  \"telefone\": \"5511999990000\",\n  \"args\": { \"data\": \"2026-10-20\", \"profissional\": \"Dra. Ana\" }\n}"
@@ -17,9 +20,43 @@
       "name": "Validar args",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [220, 0],
+      "position": [
+        220,
+        0
+      ],
       "parameters": {
         "jsCode": "const { cliente_id, args = {} } = $json;\nconst data = args.data || new Date().toISOString().slice(0, 10);\nif (!/^\\d{4}-\\d{2}-\\d{2}$/.test(data)) {\n  return [{ json: { invalido: true, motivo: 'data_invalida' } }];\n}\nreturn [{ json: { cliente_id, data, profissional: args.profissional ?? '' } }];"
+      }
+    },
+    {
+      "id": "t-if",
+      "name": "Args ok?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "args-ok",
+              "leftValue": "={{ $json.invalido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "notTrue",
+                "singleValue": true
+              }
+            }
+          ]
+        }
       }
     },
     {
@@ -27,18 +64,33 @@
       "name": "Buscar agenda",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [440, 0],
+      "position": [
+        660,
+        0
+      ],
       "parameters": {
         "method": "GET",
         "url": "={{ $env.MORPH_API_URL }}/clientes/{{ $json.cliente_id }}/agenda/horarios",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
-            { "name": "data", "value": "={{ $json.data }}" },
-            { "name": "profissional", "value": "={{ $json.profissional }}" }
+            {
+              "name": "data",
+              "value": "={{ $json.data }}"
+            },
+            {
+              "name": "profissional",
+              "value": "={{ $json.profissional }}"
+            }
           ]
         },
-        "options": { "response": { "response": { "neverError": true } } }
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
       }
     },
     {
@@ -46,16 +98,69 @@
       "name": "Retorno",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [660, 0],
+      "position": [
+        880,
+        0
+      ],
       "parameters": {
         "jsCode": "const entrada = $('Validar args').item.json;\nif (entrada.invalido) {\n  return [{ json: { texto: 'Não entendi a data. Pode mandar no formato dia/mês?', dados: { erro: entrada.motivo } } }];\n}\nconst horarios = $json.horarios ?? [];\nconst texto = horarios.length\n  ? `Horários livres em ${entrada.data}: ${horarios.join(', ')}.`\n  : `Não há horários livres em ${entrada.data}.`;\nreturn [{ json: { texto, dados: { data: entrada.data, horarios } } }];"
       }
     }
   ],
   "connections": {
-    "Execute Workflow Trigger": { "main": [[{ "node": "Validar args", "type": "main", "index": 0 }]] },
-    "Validar args": { "main": [[{ "node": "Buscar agenda", "type": "main", "index": 0 }]] },
-    "Buscar agenda": { "main": [[{ "node": "Retorno", "type": "main", "index": 0 }]] }
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validar args",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar args": {
+      "main": [
+        [
+          {
+            "node": "Args ok?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Args ok?": {
+      "main": [
+        [
+          {
+            "node": "Buscar agenda",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retorno",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar agenda": {
+      "main": [
+        [
+          {
+            "node": "Retorno",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" }
+  "settings": {
+    "executionOrder": "v1"
+  }
 }

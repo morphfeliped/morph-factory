@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  mcp:
+    name: MCP morph-n8n (build + testes)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp/morph-n8n
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mcp/morph-n8n/package-lock.json
+      - run: npm ci
+      - run: npm test

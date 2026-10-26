@@ -32,9 +32,20 @@ O último nó chama-se **`Retorno`** (Code ou Set) e devolve **um** item:
 - `texto` em português, sem markdown pesado (é WhatsApp).
 
 ## 4. Forma do subworkflow
-`Execute Workflow Trigger` → (validação de `args`) → `HTTP Request` / `Code` → `Retorno`.
-Todos os nós conectados a partir do trigger; poucos nós (3–5). Integrações externas usam
-`{{ $env.MORPH_API_URL }}/clientes/<cliente_id>/...` (API da Morph que fala com o sistema do cliente).
+```
+Execute Workflow Trigger → Validar args → Args ok? ─true→ HTTP Request → Retorno
+                                                   └false────────────────↗
+```
+- **`Validar args`** (Code): devolve os campos normalizados **ou** `{ invalido: true, motivo }`.
+- **`Args ok?`** (IF, `$json.invalido` *is not true*): obrigatório depois de `Validar args`, para que
+  args inválidos nunca cheguem à API. O validador do MCP reprova a ligação direta no HTTP.
+- Tool sem args obrigatórios pode pular os dois: `Trigger → HTTP Request → Retorno`.
+- Todos os nós conectados a partir do trigger; 3–5 nós. Nomes `Validar args`, `Args ok?` e `Retorno` são fixos.
+
+**API da Morph** — integrações usam `{{ $env.MORPH_API_URL }}/clientes/<cliente_id>/<recurso>`
+(a Morph fala com o sistema do cliente). Configure o HTTP com `neverError: true`: a API responde JSON
+e, em erro, `{ "erro": "codigo" }` (ex.: `nao_encontrado`). O `Retorno` checa `$json.erro`.
+Se a tool precisa de um recurso novo, invente um nome REST simples e liste-o no resumo como pendência.
 
 ## 5. Variáveis do prompt
 Escritas como `{{nome}}` no `prompt.md`; substituídas pelo nó *Montar prompt* do core.

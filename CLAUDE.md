@@ -29,6 +29,8 @@ Você coordena, confere e reporta. Mantenha seu contexto pequeno.
    `phone_number_id`, `numero_exibicao`, `nome_exibicao` — use ids fictícios numéricos),
    `variaveis` com **todas** as chaves de `vertical.json → variaveis`, e `transbordo.telefone_humano`.
 5. **WhatsApp** — delegue ao subagente **`config-meta`** passando o `cliente_id` criado.
+   Com `DRY_RUN=false`, peça antes ao usuário o PIN de 6 dígitos do número e repasse só na mensagem
+   ao subagente (nunca grave em arquivo).
 6. **Relatório** — grave `saida-simulada/relatorio-<vertical>.md` (curto, markdown) com:
    - resumo em 2 linhas do produto criado;
    - tabela de tools (`tool | o que faz | workflow_id | validação`);
